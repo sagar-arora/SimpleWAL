@@ -22,4 +22,8 @@ public enum EntryType {
 
         return ans;
     }
+
+    public byte getB() {
+        return b;
+    }
 }

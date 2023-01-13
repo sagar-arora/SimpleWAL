@@ -3,8 +3,10 @@ package com.arorasagar.wal;
 import com.arorasagar.wal.exception.WALException;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class WriteAheadLogImpl {
@@ -27,17 +29,21 @@ public class WriteAheadLogImpl {
         open(filePath);
     }
 
+
+
+
+
     public void open(Path path) throws IOException {
         file = path.toFile();
         bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(file));
     }
 
-    void close() {
-
+    void close() throws IOException {
+        bufferedOutputStream.close();
     }
 
-    void load(File dir) {
-
+    void load() throws IOException {
+        List<Path> paths = FileUtils.listLogFiles(Paths.get(walConfig.getDirName()));
     }
 
     // TODO:Add exception
@@ -45,14 +51,28 @@ public class WriteAheadLogImpl {
 
     }
 
-    public void operation(EntryType entryType, byte[] key, byte[] val) throws WALException {
+    public void operation(EntryType entryType, byte[] key, byte[] val) throws WALException, IOException {
         checkSize(key);
         checkSize(val);
+        long timestamp = System.currentTimeMillis();
 
+        long keySize = key.length;
+        long valSize = val.length;
+        ByteBuffer buffer = ByteBuffer.allocate(4 + 1 + 8 + (int) keySize + 8 + (int) valSize + 8);
+        buffer.flip();
+        buffer.putInt((int) sequence.incrementAndGet());
+        buffer.put(entryType.getB());
+        buffer.putLong(keySize);
+        buffer.put(key);
+        buffer.putLong(valSize);
+        buffer.put(val);
+        buffer.putLong(timestamp);
 
+        bufferedOutputStream.write(buffer.array());
     }
 
-    void flush() {
-
+    void flush() throws IOException {
+        bufferedOutputStream.flush();
     }
+
 }
