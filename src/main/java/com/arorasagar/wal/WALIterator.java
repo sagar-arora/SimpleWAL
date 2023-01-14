@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Iterator;
 
+
 public class WALIterator implements Iterator<WALEntry> {
 
     private ByteBuffer buffer;

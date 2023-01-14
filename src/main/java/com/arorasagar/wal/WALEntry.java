@@ -9,10 +9,11 @@ import java.io.Serializable;
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString
+@Getter
 public class WALEntry implements Serializable {
     private long index;
-    byte[] key;
-    byte[] value;
-    EntryType entryType;
+    private byte[] key;
+    private byte[] value;
+    private EntryType entryType;
     private long timestamp;
 }

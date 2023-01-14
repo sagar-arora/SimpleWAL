@@ -6,10 +6,11 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class WriteAheadLogImpl {
+public class SimpleWriteAheadLog {
 
     private static final int MAX_RECORD_SIZE = 10 * 1024 * 1024;
     private final AtomicLong sequence = new AtomicLong();
@@ -17,11 +18,11 @@ public class WriteAheadLogImpl {
     private File file;
     private BufferedOutputStream bufferedOutputStream;
 
-    public WriteAheadLogImpl() throws IOException {
+    public SimpleWriteAheadLog() throws IOException {
         this(WALConfig.builder().build());
     }
 
-    public WriteAheadLogImpl(WALConfig walConfig) throws IOException {
+    public SimpleWriteAheadLog(WALConfig walConfig) throws IOException {
         this.walConfig = walConfig;
         long currentTimestamp = System.currentTimeMillis();
         String fileName = "wal-" + currentTimestamp + ".log";
@@ -38,8 +39,20 @@ public class WriteAheadLogImpl {
         bufferedOutputStream.close();
     }
 
-    void load() throws IOException {
+    List<WALEntry> load() throws IOException {
         List<Path> paths = FileUtils.listLogFiles(Paths.get(walConfig.getDirName()));
+
+        List<WALEntry> entries = new ArrayList<>();
+        for (Path path : paths) {
+            System.out.println(path.toString());
+            File file = path.toFile();
+            WALIterator walIterator = new WALIterator(file);
+            if (walIterator.hasNext()) {
+                entries.add(walIterator.next());
+            }
+        }
+        FileUtils.cleanup(paths);
+        return entries;
     }
 
     // TODO:Add exception
@@ -70,5 +83,4 @@ public class WriteAheadLogImpl {
     void flush() throws IOException {
         bufferedOutputStream.flush();
     }
-
 }
