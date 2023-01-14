@@ -9,6 +9,6 @@ import java.util.stream.Collectors;
 public final class FileUtils {
 
     public static List<Path> listLogFiles(Path dir) throws IOException {
-        return Files.list(dir).toList();
+        return Files.list(dir).collect(Collectors.toList());
     }
 }

@@ -29,10 +29,6 @@ public class WriteAheadLogImpl {
         open(filePath);
     }
 
-
-
-
-
     public void open(Path path) throws IOException {
         file = path.toFile();
         bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(file));
@@ -52,6 +48,7 @@ public class WriteAheadLogImpl {
     }
 
     public void operation(EntryType entryType, byte[] key, byte[] val) throws WALException, IOException {
+
         checkSize(key);
         checkSize(val);
         long timestamp = System.currentTimeMillis();
@@ -59,7 +56,6 @@ public class WriteAheadLogImpl {
         long keySize = key.length;
         long valSize = val.length;
         ByteBuffer buffer = ByteBuffer.allocate(4 + 1 + 8 + (int) keySize + 8 + (int) valSize + 8);
-        buffer.flip();
         buffer.putInt((int) sequence.incrementAndGet());
         buffer.put(entryType.getB());
         buffer.putLong(keySize);
