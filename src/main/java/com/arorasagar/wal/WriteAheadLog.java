@@ -5,9 +5,10 @@ import java.util.Iterator;
 
 public interface WriteAheadLog {
 
-    void openWAL(File file);
+    void open();
+
+    void open(File file);
 
     Iterator<WALIterator> readAll();
-
 
 }

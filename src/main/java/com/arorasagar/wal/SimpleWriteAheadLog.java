@@ -12,26 +12,27 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class SimpleWriteAheadLog {
 
+    private static final int MAX_FILE_SIZE = 30 * 1024 * 1024;
     private static final int MAX_RECORD_SIZE = 10 * 1024 * 1024;
     private final AtomicLong sequence = new AtomicLong();
     private final WALConfig walConfig;
-    private File file;
     private BufferedOutputStream bufferedOutputStream;
 
-    public SimpleWriteAheadLog() throws IOException {
+    public SimpleWriteAheadLog() {
         this(WALConfig.builder().build());
     }
 
-    public SimpleWriteAheadLog(WALConfig walConfig) throws IOException {
+    public SimpleWriteAheadLog(WALConfig walConfig) {
         this.walConfig = walConfig;
-        long currentTimestamp = System.currentTimeMillis();
-        String fileName = "wal-" + currentTimestamp + ".log";
-        Path filePath = Paths.get(walConfig.getDirName(), fileName);
-        open(filePath);
+    }
+
+    public void open() throws IOException {
+        Path logFile = logName(System.currentTimeMillis());
+        open(logFile);
     }
 
     public void open(Path path) throws IOException {
-        file = path.toFile();
+        File file = path.toFile();
         bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(file));
     }
 
@@ -43,21 +44,40 @@ public class SimpleWriteAheadLog {
         List<Path> paths = FileUtils.listLogFiles(Paths.get(walConfig.getDirName()));
 
         List<WALEntry> entries = new ArrayList<>();
+
         for (Path path : paths) {
-            System.out.println(path.toString());
             File file = path.toFile();
             WALIterator walIterator = new WALIterator(file);
             if (walIterator.hasNext()) {
                 entries.add(walIterator.next());
             }
         }
+
+        // first close any streams that are open
+        close();
         FileUtils.cleanup(paths);
         return entries;
+    }
+
+
+    public Path logName(long currentTimestamp) {
+        String fileName = "wal-" + currentTimestamp + ".log";
+        return Paths.get(walConfig.getDirName(), fileName);
     }
 
     // TODO:Add exception
     private void checkSize(byte[] key) throws WALException {
 
+    }
+
+    public void rollover() throws IOException {
+        Path logFile = logName(System.currentTimeMillis());
+
+        if (bufferedOutputStream != null) {
+            bufferedOutputStream.flush();
+        }
+
+        open(logFile);
     }
 
     public void operation(EntryType entryType, byte[] key, byte[] val) throws WALException, IOException {
@@ -68,7 +88,17 @@ public class SimpleWriteAheadLog {
 
         long keySize = key.length;
         long valSize = val.length;
-        ByteBuffer buffer = ByteBuffer.allocate(4 + 1 + 8 + (int) keySize + 8 + (int) valSize + 8);
+        int recordSize = 4 + 1 + 8 + (int) keySize + 8 + (int) valSize + 8;
+
+        if (recordSize > MAX_RECORD_SIZE) {
+
+        }
+
+        if (recordSize > MAX_FILE_SIZE) {
+            rollover();
+        }
+
+        ByteBuffer buffer = ByteBuffer.allocate(recordSize);
         buffer.putInt((int) sequence.incrementAndGet());
         buffer.put(entryType.getB());
         buffer.putLong(keySize);

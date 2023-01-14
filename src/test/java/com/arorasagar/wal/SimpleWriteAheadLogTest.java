@@ -12,6 +12,7 @@ import java.util.List;
 public class SimpleWriteAheadLogTest {
 
     SimpleWriteAheadLog writeAheadLog;
+
     WALEntry walEntry = WALEntry.builder()
             .entryType(EntryType.SET)
             .key("key".getBytes(StandardCharsets.UTF_8))
@@ -21,6 +22,7 @@ public class SimpleWriteAheadLogTest {
     @Before
     public void setup() throws IOException {
         writeAheadLog = new SimpleWriteAheadLog();
+        writeAheadLog.open();
     }
 
     @Test

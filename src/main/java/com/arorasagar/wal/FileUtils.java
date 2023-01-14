@@ -18,7 +18,11 @@ public final class FileUtils {
 
     public static void cleanup(List<Path> paths) {
         for (Path path : paths) {
-            path.toFile().delete();
+            System.out.println("Trying to delete: " + path);
+            if (path.toFile().delete()) {
+                System.out.println("deleted");
+
+            }
         }
     }
 }
