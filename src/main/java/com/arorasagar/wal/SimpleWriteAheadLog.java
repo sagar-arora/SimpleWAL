@@ -77,6 +77,8 @@ public class SimpleWriteAheadLog {
         return buffer.array();
     }
 
+    // TODO: Improve the load method. Currently all the files are immediately loaded in the memory and list is created.
+    // Better way to to would be to handle the deleting the file in the iterator itself.
     List<WALEntry> load() throws IOException {
 
         List<FileMetadata> fileMetadataList = FileUtils.listLogFiles(Paths.get(walConfig.getDirName()));
