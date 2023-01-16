@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class SimpleWriteAheadLog {
 
     private final WALConfig walConfig;
-    private final SimpleWriteAheadLogWriter writer;
+    private SimpleWriteAheadLogWriter writer;
 
     public SimpleWriteAheadLog() throws IOException {
         this(WALConfig.builder().build());
@@ -21,8 +21,6 @@ public class SimpleWriteAheadLog {
 
     public SimpleWriteAheadLog(WALConfig walConfig) throws IOException {
         this.walConfig = walConfig;
-        File file = open();
-        writer = new SimpleWriteAheadLogWriter(file);
     }
 
     public File open() throws IOException {
@@ -31,6 +29,8 @@ public class SimpleWriteAheadLog {
     }
 
     public File open(Path path) throws IOException {
+        File file = open();
+        writer = new SimpleWriteAheadLogWriter(file);
         return path.toFile();
     }
 
@@ -54,7 +54,7 @@ public class SimpleWriteAheadLog {
                 .build();
     }
 
-    public byte[] searlize(long sequence, EntryType entryType, byte[] key, byte[] val, long timestamp) throws IOException {
+    public byte[] serialize(long sequence, EntryType entryType, byte[] key, byte[] val, long timestamp) {
         if (key == null) {
             key = new byte[0];
         }
@@ -131,7 +131,7 @@ public class SimpleWriteAheadLog {
 
 
         public void write(EntryType entryType, byte[] key, byte[] val, long timestamp) throws WALException, IOException {
-            byte[] bytes = searlize(sequence.incrementAndGet(), entryType, key, val, timestamp);
+            byte[] bytes = serialize(sequence.incrementAndGet(), entryType, key, val, timestamp);
             int recordSize = bytes.length;
             // TODO: add check and throw Exception
             if (recordSize > walConfig.getMaxRecordSize()) {

@@ -1,6 +1,5 @@
 package com.arorasagar.wal;
 
-import com.arorasagar.wal.exception.WALException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 public class SimpleWriteAheadLogTest {
 
-    SimpleWriteAheadLog writeAheadLog;
+    private SimpleWriteAheadLog writeAheadLog;
     private final long timestamp = System.currentTimeMillis();
 
     private final WALEntry WAL_ENTRY = WALEntry
@@ -29,10 +28,10 @@ public class SimpleWriteAheadLogTest {
     }
 
     @Test
-    public void testSerializeDeserialize() throws IOException, WALException {
+    public void testSerializeDeserialize() throws IOException {
         String key = "key", value = "value";
 
-        byte[] bytes = writeAheadLog.searlize(1, EntryType.SET, key.getBytes(StandardCharsets.UTF_8),
+        byte[] bytes = writeAheadLog.serialize(1, EntryType.SET, key.getBytes(StandardCharsets.UTF_8),
                 value.getBytes(StandardCharsets.UTF_8), timestamp);
 
         WALEntry walEntry = writeAheadLog.deserialize(ByteBuffer.wrap(bytes));
