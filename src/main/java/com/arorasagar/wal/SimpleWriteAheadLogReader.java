@@ -1,18 +1,17 @@
 package com.arorasagar.wal;
 
-
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.Iterator;
-import java.util.List;
 
-
-public class WALIterator implements Iterator<WALEntry> {
-
-    private ByteBuffer buffer;
-
-    public WALIterator(File file) {
+public class SimpleWriteAheadLogReader {
+    
+    File file;
+    ByteBuffer buffer;
+    
+    public SimpleWriteAheadLogReader(File file) {
         try (RandomAccessFile aFile = new RandomAccessFile(file.getName(), "r");
              FileChannel inChannel = aFile.getChannel();) {
 
@@ -24,19 +23,8 @@ public class WALIterator implements Iterator<WALEntry> {
             e.printStackTrace();
         }
     }
-
-    public WALIterator(byte[] fileBytes) {
-        buffer = ByteBuffer.wrap(fileBytes);
-    }
-
-
-    @Override
-    public boolean hasNext() {
-        return buffer.position() < buffer.capacity();
-    }
-
-    @Override
-    public WALEntry next() {
+    
+    public void read() {
         int index = buffer.getInt();
         byte entryType = buffer.get();
         long keySize = buffer.getLong();
@@ -46,18 +34,5 @@ public class WALIterator implements Iterator<WALEntry> {
         byte[] val = new byte[(int) valSize];
         buffer.get(val, 0, (int) valSize);
         long timestamp = buffer.getLong();
-
-        return WALEntry.builder()
-                .key(key)
-                .value(val)
-                .index(index)
-                .entryType(EntryType.getCommandFromVal(entryType))
-                .timestamp(timestamp)
-                .build();
-    }
-
-    @Override
-    public void remove() {
-
     }
 }

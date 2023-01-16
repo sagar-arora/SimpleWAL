@@ -18,6 +18,7 @@ public class WALIteratorTest {
 
     @Test
     public void test1() throws IOException {
+
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
        DataOutputStream oos = new DataOutputStream(bos);
        oos.writeInt(1);

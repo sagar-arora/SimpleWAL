@@ -1,14 +1,14 @@
 package com.arorasagar.wal;
 
 import java.io.File;
-import java.util.Iterator;
+import java.nio.file.Path;
+import java.util.List;
 
 public interface WriteAheadLog {
 
     void open();
 
-    void open(File file);
+    void open(Path path);
 
-    Iterator<WALIterator> readAll();
-
+    List<WALEntry> load();
 }
