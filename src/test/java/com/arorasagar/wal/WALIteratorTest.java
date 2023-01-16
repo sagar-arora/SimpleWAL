@@ -6,18 +6,24 @@ import org.junit.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.util.Arrays;
+
+import java.nio.charset.StandardCharsets;
 
 
 public class WALIteratorTest {
 
-    public WALIteratorTest() {
-
-    }
+    private final long timestamp = 1000;
+    private final WALEntry WAL_ENTRY = WALEntry
+            .builder()
+            .index(1)
+            .entryType(EntryType.DELETE)
+            .key("test".getBytes(StandardCharsets.UTF_8))
+            .value("test".getBytes(StandardCharsets.UTF_8))
+            .timestamp(timestamp)
+            .build();
 
     @Test
-    public void test1() throws IOException {
+    public void testWalIterator() throws IOException {
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
        DataOutputStream oos = new DataOutputStream(bos);
@@ -30,9 +36,9 @@ public class WALIteratorTest {
        oos.writeLong(1000);
        oos.flush();
        byte[] data = bos.toByteArray();
-       System.out.println(Arrays.toString(data));
 
        WALIterator walIterator = new WALIterator(data);
-       System.out.println(walIterator.next());
+
+       Assert.assertEquals(WAL_ENTRY, walIterator.next());
     }
 }
